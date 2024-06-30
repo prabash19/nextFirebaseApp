@@ -1,21 +1,27 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import useAuth from "../firebase/auth";
+import { useEffect, useState } from "react";
 
 const protectedRoutes = (WrappedComponent: React.FC) => {
   const ComponentWithAuth: React.FC = (props) => {
-    const { user, loading } = useAuth();
     const router = useRouter();
+    const [loading, setLoading] = useState(true);
+    const [token, setToken] = useState<string | null>(null);
+
     useEffect(() => {
-      if (!loading && !user) {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken) {
         router.replace("/login");
+        setLoading(false);
+      } else {
+        setToken(storedToken);
+        setLoading(false);
       }
-    }, [loading, user, router]);
+    }, [router]);
     if (loading) {
       return <div>Loading...</div>;
     }
-    if (!user) {
+    if (!token) {
       return null;
     }
     return <WrappedComponent {...props} />;

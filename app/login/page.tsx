@@ -1,32 +1,39 @@
 "use client";
 import React, { useState } from "react";
 import { auth } from "../../firebase/firebaseConfig";
-import {
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     try {
-      const res = await signInWithEmailAndPassword(auth, email, password);
-      router.push("/profile");
-      console.log("res is", res);
-    } catch (error) {
-      console.error("Error logging in:", error);
-    }
+      const response = await axios.post("api/login", { email, password });
+      if (response.status === 200) {
+        const { token } = response.data;
+        if (token) {
+          localStorage.setItem("token", token);
+          router.push("/profile");
+        } else {
+          console.error("Login failed: Token not found in response");
+        }
+      } else {
+        console.error("Login failed with status:", response.status);
+      }
+    } catch (error: any) {}
   };
   const handleLoginInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     const res = await signInWithPopup(auth, provider);
+    const user = res.user;
+    const token = await user.getIdToken();
+    localStorage.setItem("token", token);
     router.push("/profile");
-    console.log("res is ", res);
   };
   return (
     <>
@@ -43,7 +50,7 @@ const Login = () => {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form className="space-y-6" action="#" method="POST">
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label
                 htmlFor="email"
@@ -97,7 +104,6 @@ const Login = () => {
             <div>
               <button
                 type="submit"
-                onClick={handleLogin}
                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Login

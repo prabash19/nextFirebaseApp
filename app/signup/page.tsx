@@ -2,11 +2,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "../../firebase/firebaseConfig";
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import axios from "axios";
 
 const Signup: React.FC = () => {
   const router = useRouter();
@@ -14,19 +11,28 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState("");
   const handleSignup = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     try {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      router.push("/profile");
-    } catch (error) {
-      console.error("Error signing up:", error);
-    }
+      const response = await axios.post("api/signup", { email, password });
+      if (response.status === 200) {
+        const { token } = response.data;
+        if (token) {
+          localStorage.setItem("token", token);
+          router.push("/profile");
+        } else {
+          console.error("Login failed: Token not found in response");
+        }
+      } else {
+        console.error("Login failed with status:", response.status);
+      }
+    } catch (error: any) {}
   };
   const handleLoginInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     const res = await signInWithPopup(auth, provider);
+    const user = res.user;
+    const token = await user.getIdToken();
+    localStorage.setItem("token", token);
     router.push("/profile");
-    console.log("res is ", res);
   };
 
   return (

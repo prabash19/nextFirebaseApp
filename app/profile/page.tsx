@@ -9,6 +9,7 @@ const Dashboard: React.FC = () => {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      localStorage.removeItem("token");
       router.push("/signup");
     } catch (error) {
       console.error("Error signing out:", error);
