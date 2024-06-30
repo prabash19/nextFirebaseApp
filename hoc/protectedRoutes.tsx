@@ -1,31 +1,27 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import useAuth from "../auth";
+import useAuth from "../firebase/auth";
 
-const withAuth = (WrappedComponent: React.FC) => {
+const protectedRoutes = (WrappedComponent: React.FC) => {
   const ComponentWithAuth: React.FC = (props) => {
     const { user, loading } = useAuth();
     const router = useRouter();
-
     useEffect(() => {
       if (!loading && !user) {
-        router.replace("/signup");
+        router.replace("/login");
       }
     }, [loading, user, router]);
-
     if (loading) {
       return <div>Loading...</div>;
     }
-
     if (!user) {
       return null;
     }
-
     return <WrappedComponent {...props} />;
   };
 
   return ComponentWithAuth;
 };
 
-export default withAuth;
+export default protectedRoutes;

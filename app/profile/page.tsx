@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import withAuth from "@/components/withAuth";
+import protectedRoutes from "@/hoc/protectedRoutes";
 import { signOut } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
+import { auth } from "../../firebase/firebaseConfig";
 const Dashboard: React.FC = () => {
   const router = useRouter();
   const handleSignOut = async () => {
@@ -22,4 +22,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default withAuth(Dashboard);
+export default protectedRoutes(Dashboard);
